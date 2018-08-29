@@ -7,6 +7,12 @@ public class GameController implements Drawable, Runnable{
 	private GameSimulator simulator;
 	private Judge judge;
 
+	public RobotAgent getRobotAgent() {
+		return robotAgent;
+	}
+
+	private RobotAgent robotAgent;
+
 	// Array of Robots currently registered in this game
 	public ArrayList<Robot> robots = new ArrayList<Robot>();
 
@@ -41,6 +47,7 @@ public class GameController implements Drawable, Runnable{
 	public GameSimulator getSimulator(){
 		return simulator;
 	}
+
 
 	/*
 		Stores Points for both Sides

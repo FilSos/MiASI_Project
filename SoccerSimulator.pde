@@ -14,6 +14,7 @@ void settings(){
 
   controller.getSimulator().setFieldSize(2.44f, 1.82f);
   size((int)controller.getWidth(SCALE) + 200, (int)controller.getHeight(SCALE) + 100);
+  controller.getRobotAgent();
 }
 
 void draw(){
@@ -90,4 +91,7 @@ public void keyPressed(){
 		System.out.println(debug);
 	}
 
+}
+
+public void startAgents(){
 }

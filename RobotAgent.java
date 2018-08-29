@@ -17,15 +17,15 @@ public class RobotAgent extends Agent {
 
     private static boolean IAmTheCreator = true;
     // number of answer messages received.
-    private int answersCnt = 0;
+    private int numberOfGoals = 0;
 
     public final static String GOAL = "GOAL";
     public final static String ANSWER = "ANSWER";
     public final static String THANKS = "THANKS";
-    private AgentContainer ac = null;
+    String t1AgentName;
     private AgentController t1 = null;
     private AID initiator = null;
-
+    private  Judge judge;
 
     public void startAgents() throws StaleProxyException {
        setup();
@@ -54,11 +54,11 @@ public class RobotAgent extends Agent {
         if (IAmTheCreator) {
             IAmTheCreator = false;  // next agent in this JVM will not be a creator
 
-            // create another two ThanksAgent
-            String t1AgentName = getLocalName()+"T1";
+            // create Judge Agent
+            String t1AgentName = getLocalName()+" Judge";
 
             try {
-                // create agent t1 on the same container of the creator agent
+                // create Judge Agent on the same container of the creator agent
                 AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
                 t1 = container.createNewAgent(t1AgentName, "RobotAgent", null);
                 t1.start();
@@ -67,14 +67,8 @@ public class RobotAgent extends Agent {
                 any.printStackTrace();
             }
 
-            // send them a GOAL message
-            ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-            msg.setContent(GOAL);
+            // send  a GOAL message
 
-            msg.addReceiver(new AID(t1AgentName, AID.ISLOCALNAME));
-
-            send(msg);
-            System.out.println(getLocalName()+" SENT GOAL MESSAGE  TO "+t1AgentName);
         }
 
         // add a Behaviour that listen if a greeting message arrives
@@ -83,6 +77,17 @@ public class RobotAgent extends Agent {
         // then send a THANKS message
         addBehaviour(new CyclicBehaviour(this) {
             public void action() {
+
+                 if (judge.checkGoal()){
+                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                    msg.setContent(GOAL);
+
+                    msg.addReceiver(new AID(t1AgentName, AID.ISLOCALNAME));
+
+                    send(msg);
+                    System.out.println(getLocalName()+" SENT GOAL MESSAGE  TO "+t1AgentName);
+                }
+
                 // listen if a greetings message arrives
                 ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                 if (msg != null) {
@@ -92,7 +97,8 @@ public class RobotAgent extends Agent {
                         ACLMessage reply = msg.createReply();
                         reply.setContent(ANSWER);
                         myAgent.send(reply);
-                        System.out.println(myAgent.getLocalName()+" SENT ANSWER MESSAGE");
+                        numberOfGoals++;
+                        System.out.println("NUMBER OF GOALS:" + numberOfGoals);
                     }
                     else if (ANSWER.equalsIgnoreCase(msg.getContent())) {
                         // if an ANSWER to a greetings message is arrived
@@ -102,33 +108,7 @@ public class RobotAgent extends Agent {
                         replyT.setContent(THANKS);
                         myAgent.send(replyT);
                         System.out.println(myAgent.getLocalName()+" SENT THANKS MESSAGE");
-                        answersCnt++;
-                        if (answersCnt == 2) {
-                            // All answers have been received.
-                            // Wait a bit to be sure the other Thanks agents gets the Thank message,
-                            // then kill everybody
-                            try {
-                                Thread.sleep(1000);
-                            }
-                            catch (InterruptedException ie) {}
-                            try {
-                                // Kill the created container (this will also kill ThanksAgent2)
-                                ac.kill();
-                                // Kill ThanksAgent2
-                                t1.kill();
-                                // Reset the creator indication
-                                IAmTheCreator = true;
-                                // Notify the initiator if any
-                                if (initiator != null) {
-                                    ACLMessage notification = new ACLMessage(ACLMessage.INFORM);
-                                    notification.addReceiver(initiator);
-                                    send(notification);
-                                }
-                            }
-                            catch (StaleProxyException any) {
-                                any.printStackTrace();
-                            }
-                        }
+
                     }
                     else if (THANKS.equalsIgnoreCase(msg.getContent())) {
                         System.out.println(myAgent.getLocalName()+" RECEIVED THANKS MESSAGE FROM "+msg.getSender().getLocalName());
