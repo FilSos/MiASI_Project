@@ -1,5 +1,5 @@
 GameController controller;
-
+RobotAgent robotAgent;
 float SCALE = 300f;
 
 void settings(){
@@ -14,6 +14,7 @@ void settings(){
 
   controller.getSimulator().setFieldSize(2.44f, 1.82f);
   size((int)controller.getWidth(SCALE) + 200, (int)controller.getHeight(SCALE) + 100);
+ 
 }
 
 void draw(){
@@ -88,6 +89,5 @@ public void keyPressed(){
 			debug += "\n\t"+r;
 
 		System.out.println(debug);
-	}
-
+}
 }

@@ -149,20 +149,20 @@ public class Judge{
 		}
 	}
 
-	protected boolean checkGoal(){
+	protected int checkGoal(){
 		Ball b = simulator.ball;
 
 		if(b.colliding(simulator.goalLeft) && !b.colliding(simulator.fieldArea)){
 			controller.addPointsFor(TeamSide.RIGHT, 1);
 			controller.restartPositions(TeamSide.LEFT);
-			return true;
+			return 1;
 		}else if(b.colliding(simulator.goalRight) && !b.colliding(simulator.fieldArea)){
 			controller.addPointsFor(TeamSide.LEFT, 1);
 			controller.restartPositions(TeamSide.RIGHT);
 			controller.resumeGame();
-			return true;
+			return 2;
 		}
-	return false;
+	return 0;
 	}
 
 	private void checkNoPlayer(){

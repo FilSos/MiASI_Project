@@ -1,125 +1,110 @@
 import jade.core.AID;
 import jade.core.Agent;
+
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAException;
-import jade.gui.GuiEvent;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.wrapper.AgentContainer;
 import jade.wrapper.AgentController;
 import jade.wrapper.StaleProxyException;
 
+
 public class RobotAgent extends Agent {
 
     private static boolean IAmTheCreator = true;
-    // number of answer messages received.
-    private int numberOfGoals = 0;
+    // number of goal messages received.
+    private int numberOfGoalsTeamOne = 0;
+    private int numberOfGoalsTeamTwo = 0;
 
+    public String agentName = new String();
     public final static String GOAL = "GOAL";
-    public final static String ANSWER = "ANSWER";
-    public final static String THANKS = "THANKS";
+    public final static String FIRST_TEAM = "0";
+    public final static String SECOND_TEAM = "0";
     String t1AgentName;
     private AgentController t1 = null;
     private AID initiator = null;
-    private  Judge judge;
 
-    public void startAgents() throws StaleProxyException {
-       setup();
+    public void startAgents(Judge judge) throws StaleProxyException {
+        setup();
+        // send  a GOAL message
+        if (judge != null) {
+            if (judge.checkGoal() == 1) {
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                msg.setContent(FIRST_TEAM);
+                msg.addReceiver(new AID(t1AgentName, AID.ISLOCALNAME));
+                send(msg);
+                System.out.println(getLocalName() + " SENT GOAL MESSAGE OF FIRST TEAM  TO " + t1AgentName);
+            } else if (judge.checkGoal() == 2) {
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                msg.setContent(SECOND_TEAM);
+                msg.addReceiver(new AID(t1AgentName, AID.ISLOCALNAME));
+                send(msg);
+                System.out.println(getLocalName() + " SENT GOAL MESSAGE OF SECOND TEAM  TO " + t1AgentName);
+
+            }
+
         }
-
+    }
 
 
     protected void setup() {
-        System.out.println(getLocalName()+" STARTED");
-        Object[] args = getArguments();
-        if (args != null && args.length > 0) {
-            initiator = new AID((String) args[0], AID.ISLOCALNAME);
-        }
-
+        // create Judge Agent
+        String t1AgentName = "Agent Judge";
+        String t2AgentName = "Agent Counter";
+        Runtime runtime = Runtime.instance();
         try {
-            // create the agent descrption of itself
-            DFAgentDescription dfd = new DFAgentDescription();
-            dfd.setName(getAID());
-            // register the description with the DF
-            DFService.register(this, dfd);
-            System.out.println(getLocalName()+" REGISTERED WITH THE DF");
-        } catch (FIPAException e) {
-            e.printStackTrace();
+            // create Judge Agent on the same container of the creator agent
+            ProfileImpl profileImpl = new ProfileImpl(false);
+            profileImpl.setParameter(ProfileImpl.MAIN_HOST, "localhost");
+            AgentContainer container = runtime.createAgentContainer(profileImpl); // get a container controller for creating new agents
+            t1 = container.createNewAgent(t1AgentName, "RobotAgent", null);
+            t1 = container.createNewAgent(t2AgentName, "RobotAgent", null);
+            t1.start();
+            System.out.println("CREATED AND STARTED NEW ROBOTAGENT:" + t1AgentName + " ON CONTAINER " + container.getContainerName());
+            System.out.println("CREATED AND STARTED NEW ROBOTAGENT:" + t2AgentName + " ON CONTAINER " + container.getContainerName());
+        } catch (Exception any) {
+            any.printStackTrace();
         }
 
-        if (IAmTheCreator) {
-            IAmTheCreator = false;  // next agent in this JVM will not be a creator
 
-            // create Judge Agent
-            String t1AgentName = getLocalName()+" Judge";
-
-            try {
-                // create Judge Agent on the same container of the creator agent
-                AgentContainer container = (AgentContainer)getContainerController(); // get a container controller for creating new agents
-                t1 = container.createNewAgent(t1AgentName, "RobotAgent", null);
-                t1.start();
-                System.out.println(getLocalName()+" CREATED AND STARTED NEW ROBOTAGENT:"+t1AgentName + " ON CONTAINER "+container.getContainerName());
-            } catch (Exception any) {
-                any.printStackTrace();
-            }
-
-            // send  a GOAL message
-
-        }
-
-        // add a Behaviour that listen if a greeting message arrives
-        // and sends back an ANSWER.
-        // if an ANSWER to a greetings message is arrived
-        // then send a THANKS message
+        // if an COUNT to a goals message is arrived
+        // then count Goals
         addBehaviour(new CyclicBehaviour(this) {
             public void action() {
 
-                 if (judge.checkGoal()){
-                    ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
-                    msg.setContent(GOAL);
-
-                    msg.addReceiver(new AID(t1AgentName, AID.ISLOCALNAME));
-
-                    send(msg);
-                    System.out.println(getLocalName()+" SENT GOAL MESSAGE  TO "+t1AgentName);
-                }
-
-                // listen if a greetings message arrives
+                // listen if a goal message arrives
                 ACLMessage msg = receive(MessageTemplate.MatchPerformative(ACLMessage.INFORM));
                 if (msg != null) {
-                    if (GOAL.equalsIgnoreCase(msg.getContent())) {
-                        // if a greetings message is arrived then send an ANSWER
-                        System.out.println(myAgent.getLocalName()+" RECEIVED GOAL MESSAGE FROM "+msg.getSender().getLocalName());
+                    if (FIRST_TEAM.equalsIgnoreCase(msg.getContent())) {
+                        // if  message is arrived then send an GOAL
+                        System.out.println(myAgent.getLocalName() + " RECEIVED GOAL OF FIRST TEAM MESSAGE FROM " + msg.getSender().getLocalName());
                         ACLMessage reply = msg.createReply();
-                        reply.setContent(ANSWER);
+                        reply.setContent(GOAL);
                         myAgent.send(reply);
-                        numberOfGoals++;
-                        System.out.println("NUMBER OF GOALS:" + numberOfGoals);
+                        numberOfGoalsTeamOne++;
+                        System.out.println("NUMBER OF GOALS TEAM ONE:" + numberOfGoalsTeamOne);
+                    } else if (SECOND_TEAM.equalsIgnoreCase(msg.getContent())) {
+                        System.out.println(myAgent.getLocalName() + " RECEIVED GOAL OF FIRST TEAM MESSAGE FROM " + msg.getSender().getLocalName());
+                        ACLMessage reply = msg.createReply();
+                        reply.setContent(GOAL);
+                        myAgent.send(reply);
+                        numberOfGoalsTeamTwo++;
+                        System.out.println("NUMBER OF GOALS TEAM TWO:" + numberOfGoalsTeamTwo);
+                    } else {
+                        System.out.println(myAgent.getLocalName() + " Unexpected message received from " + msg.getSender().getLocalName());
                     }
-                    else if (ANSWER.equalsIgnoreCase(msg.getContent())) {
-                        // if an ANSWER to a greetings message is arrived
-                        // then send a THANKS message
-                        System.out.println(myAgent.getLocalName()+" RECEIVED ANSWER MESSAGE FROM "+msg.getSender().getLocalName());
-                        ACLMessage replyT = msg.createReply();
-                        replyT.setContent(THANKS);
-                        myAgent.send(replyT);
-                        System.out.println(myAgent.getLocalName()+" SENT THANKS MESSAGE");
-
-                    }
-                    else if (THANKS.equalsIgnoreCase(msg.getContent())) {
-                        System.out.println(myAgent.getLocalName()+" RECEIVED THANKS MESSAGE FROM "+msg.getSender().getLocalName());
-                    }
-                    else {
-                        System.out.println(myAgent.getLocalName()+" Unexpected message received from "+msg.getSender().getLocalName());
-                    }
-                }
-                else {
+                } else {
                     // if no message is arrived, block the behaviour
                     block();
+                }
+                if (numberOfGoalsTeamTwo == numberOfGoalsTeamOne + 3) {
+                    System.out.println("TEAM TWO IS AHEAD!!!");
+                } else if (numberOfGoalsTeamOne == numberOfGoalsTeamTwo + 3) {
+                    System.out.println("TEAM ONE IS AHEAD!!!");
                 }
             }
         });
@@ -129,7 +114,7 @@ public class RobotAgent extends Agent {
         // Deregister with the DF
         try {
             DFService.deregister(this);
-            System.out.println(getLocalName()+" DEREGISTERED WITH THE DF");
+            System.out.println(getLocalName() + " DEREGISTERED WITH THE DF");
         } catch (FIPAException e) {
             e.printStackTrace();
         }
@@ -144,7 +129,5 @@ public class RobotAgent extends Agent {
     protected void afterMove() {
         System.out.println("Po przejsciu");
     }
-
-
 
 }

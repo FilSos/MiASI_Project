@@ -10,7 +10,7 @@ public class CustomTeamB implements Team{
 	}
 
 	public String getTeamName(){
-		return "5.0 Team";
+		return "Student Team";
 	}
 	
 	TeamSide s;

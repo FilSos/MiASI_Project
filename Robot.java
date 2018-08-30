@@ -213,7 +213,6 @@ public class Robot extends Simulatable implements ShapeCircle, Drawable, Runnabl
 		canvas.translate(x, y);
 		canvas.rotate(heading);
 		canvas.scale(drawScale);
-		// TODO: How to resolve scale, so that teams don't have to mind it also...
 		decorateRobot(canvas);
 		canvas.scale(1f/drawScale);
 		canvas.rotate(-heading);

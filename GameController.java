@@ -1,3 +1,4 @@
+import jade.wrapper.StaleProxyException;
 import processing.core.*;
 import processing.*;
 import java.util.*;
@@ -7,9 +8,6 @@ public class GameController implements Drawable, Runnable{
 	private GameSimulator simulator;
 	private Judge judge;
 
-	public RobotAgent getRobotAgent() {
-		return robotAgent;
-	}
 
 	private RobotAgent robotAgent;
 
@@ -39,6 +37,8 @@ public class GameController implements Drawable, Runnable{
 
 		// Create game Simulator
 		simulator = new GameSimulator();
+
+		robotAgent = new RobotAgent();
 
 		// Reset everything
 		resetGame();
@@ -101,7 +101,11 @@ public class GameController implements Drawable, Runnable{
 		simulator.simulate(time);
 
 		judge.judge(time);
-		
+		try {
+			robotAgent.startAgents(judge);
+		} catch (StaleProxyException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/*
@@ -464,4 +468,9 @@ public class GameController implements Drawable, Runnable{
 	public float getHeight(float scale){
 		return simulatorPos.y + simulator.field.height * scale;
 	}
+
+	public RobotAgent getRobotAgent() {
+		return robotAgent;
+	}
 }
+

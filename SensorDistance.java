@@ -18,10 +18,7 @@ class SensorDistance extends Sensor{
 		this.localOrientation = localOrientation;
 	}
 
-	/**
-	 * @return float array of size 1 with the current distance
-	 */
-	// TODO this should fail to read based on the angle between ray and surface
+	
 	public float[] readValues() {
 		PVector origin = robot.getRealPosition();
 		float direction = robot.getOrientation() + (float) Math.toRadians(localOrientation);
