@@ -15,7 +15,7 @@ import jade.wrapper.StaleProxyException;
 
 public class RobotAgent extends Agent {
 
-    private static boolean IAmTheCreator = true;
+    private static boolean AgentsCreated = true;
     // number of goal messages received.
     private int numberOfGoalsTeamOne = 0;
     private int numberOfGoalsTeamTwo = 0;
@@ -53,6 +53,8 @@ public class RobotAgent extends Agent {
 
     protected void setup() {
         // create Judge Agent
+        if (AgentsCreated) {
+            AgentsCreated = false;
         String t1AgentName = "Agent Judge";
         String t2AgentName = "Agent Counter";
         Runtime runtime = Runtime.instance();
@@ -68,6 +70,9 @@ public class RobotAgent extends Agent {
             System.out.println("CREATED AND STARTED NEW ROBOTAGENT:" + t2AgentName + " ON CONTAINER " + container.getContainerName());
         } catch (Exception any) {
             any.printStackTrace();
+        }
+
+
         }
 
 
