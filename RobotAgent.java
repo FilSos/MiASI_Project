@@ -22,8 +22,8 @@ public class RobotAgent extends Agent {
 
     public String agentName = new String();
     public final static String GOAL = "GOAL";
-    public final static String FIRST_TEAM = "0";
-    public final static String SECOND_TEAM = "0";
+    public final static String FIRST_TEAM = "MiASI Team";
+    public final static String SECOND_TEAM = "Student Team";
     String t1AgentName;
     private AgentController t1 = null;
     private AID initiator = null;
@@ -49,7 +49,6 @@ public class RobotAgent extends Agent {
 
         }
     }
-
 
     protected void setup() {
         // create Judge Agent
